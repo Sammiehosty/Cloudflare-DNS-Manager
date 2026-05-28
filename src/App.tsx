@@ -210,7 +210,7 @@ const Login = ({ onLogin, setTheme, onGoToRegistration }: { onLogin: () => void,
             </div>
             <h1 className="text-[28px] font-light text-[#41525d] dark:text-[#e9edef] mb-2 tracking-tight">Cloudflare Manager</h1>
             <p className="text-sm text-[#667781] dark:text-[#aebac1] leading-relaxed">
-              Use your secure administrator key to access the DNS management dashboard.
+             Centralized DNS control and client management. Manage global infrastructure, optimize zone records, and maintain enterprise security through a secure, responsive dashboard.
             </p>
           </div>
           
@@ -238,7 +238,7 @@ const Login = ({ onLogin, setTheme, onGoToRegistration }: { onLogin: () => void,
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
-                <>Log In</>
+                <>Login to Dashboard</>
               )}
             </button>
           </form>
@@ -942,9 +942,7 @@ export default function App() {
             )}
           </div>
           <div className="flex gap-0.5 md:gap-1 text-[#54656f] dark:text-[#aebac1]">
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-90" title="Theme">
-              {theme === 'light' ? <Moon className="w-5 h-5 md:w-6 md:h-6" /> : <Sun className="w-5 h-5 md:w-6 md:h-6 text-[#00a884]" />}
-            </button>
+            
             <button onClick={() => { setUserToEdit(null); setIsAddUserOpen(true); }} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-90" title="Add Client">
               <Plus className="w-6 h-6" />
             </button>
@@ -1070,7 +1068,7 @@ export default function App() {
               <div className="bg-white dark:bg-[#111b21] rounded shadow-[0_1px_3px_rgba(11,20,26,0.08)] flex flex-col border border-[#e9edef] dark:border-[#2a3942] min-h-fit">
                 <div className="p-2 sm:p-3 bg-[#f0f2f5] dark:bg-[#202c33] border-b border-[#e9edef] dark:border-[#2a3942] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div className="flex items-center gap-3">
-                    <h2 className="font-medium text-[#008069] dark:text-[#00a884] flex items-center gap-2 text-base tracking-tight italic uppercase text-xs font-black">Management Zone</h2>
+                    <h2 className="font-medium text-[#008069] dark:text-[#00a884] flex items-center gap-2 text-base tracking-tight italic uppercase text-xs font-black">DNS Management Zone</h2>
                     {selectedRecords.length > 0 && (
                       <button 
                         onClick={handleBulkDelete}
@@ -1096,7 +1094,7 @@ export default function App() {
                       onClick={() => setIsAddingRecord(true)}
                       className="bg-[#00a884] text-white px-4 py-2 rounded font-medium text-xs hover:bg-[#06cf9c] transition-all active:scale-95 uppercase tracking-wide shrink-0 shadow-sm"
                     >
-                      New Record
+                      + New Record
                     </button>
                   </div>
                 </div>
