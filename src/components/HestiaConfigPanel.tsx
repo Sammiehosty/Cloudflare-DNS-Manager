@@ -174,13 +174,7 @@ export const HestiaConfigPanel: React.FC<Props> = ({
               <Key size={12} className="inline mr-1.5" />
               Using API Key
             </label>
-            <input disabled hidden
-              type="password"
-              value={config.apiHash}
-              onChange={e => handleChange('apiHash', e.target.value)}
-              placeholder="Paste your API key from v-generate-api-key"
-              className="w-full bg-gray-900/50 border border-gray-600/50 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-            />
+            <br/>
             <p className="text-[11px] text-gray-500 mt-1.5">
               Generated via SSH: <code className="text-purple-300 bg-gray-900 px-1 rounded">v-generate-api-key</code>
             </p>
