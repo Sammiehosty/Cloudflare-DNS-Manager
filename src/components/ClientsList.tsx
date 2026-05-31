@@ -353,7 +353,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3">
+      <div className="p-3 max-h-[300px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
@@ -375,7 +375,7 @@ export const ClientsList: React.FC<Props> = ({
                     <div className="w-8 h-8 shrink-0 bg-orange-500/10 border border-orange-400/20 rounded-lg flex items-center justify-center">
                       <Cloud size={14} className="text-orange-400" />
                     </div>
-                    <div className="min-w-0 flex-1 max-h-[300px] overflow-y-auto">
+                    <div className="min-w-0 flex-1 ">
                       <h4 className="text-white text-sm font-medium truncate">{client.name}</h4>
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
