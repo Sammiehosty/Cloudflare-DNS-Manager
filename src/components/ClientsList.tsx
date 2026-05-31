@@ -380,27 +380,27 @@ export const ClientsList: React.FC<Props> = ({
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
                           <span className="flex items-center gap-1 text-orange-400 truncate">
-                            <Cloud size={10} />
+                            <Cloud size={8} />
                             {client.cf_zone_name}
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[8px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[6px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[8px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[6px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'unknown' && (
-                          <span className="text-[11px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
+                          <span className="text-[6px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
                             Unable to check DNS
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'loading' && (
-                          <span className="text-[11px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
+                          <span className="text-[6px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
                             Checking DNS...
                           </span>
                         )}
