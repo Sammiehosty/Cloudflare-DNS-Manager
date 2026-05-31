@@ -227,7 +227,7 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
               </label>
               <input disabled
                 type="text"
-                value={username}
+                value="admin"
                 onChange={e => setUsername(e.target.value)}
                 placeholder="admin"
                 required
@@ -293,9 +293,9 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
               {showRegister ? 'Back to Admin Login' : 'Client? Add your details'}
             </button>
 <br />
-             <p className="text-center text-[11px] text-gray-600 mt-4">
-          Powered by <span className="text-gray-400">Sammie Hosty</span>
-        </p>
+             <p className="text-xs text-gray-600">
+              Secure access to HestiaCP + Cloudflare DNS Management
+            </p>
           </div>
         </div>
 
