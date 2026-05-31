@@ -370,7 +370,7 @@ export const ClientsList: React.FC<Props> = ({
                 }`}
                 onClick={() => setSelectedClient(client)}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 max-h-[300px] overflow-y-auto">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <div className="w-8 h-8 shrink-0 bg-orange-500/10 border border-orange-400/20 rounded-lg flex items-center justify-center">
                       <Cloud size={14} className="text-orange-400" />
