@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Global compact sizing */
+html {
+  font-size: 13px;
+}
+
+body {
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Smooth transitions */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Input autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0px 1000px #111827 inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  accent-color: #a855f7;
+}
+
+/* Table styling */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Code styling */
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* Animation for pulse */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(168, 85, 247, 0); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
