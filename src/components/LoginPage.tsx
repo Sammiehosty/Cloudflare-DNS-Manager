@@ -225,7 +225,7 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
                 <User size={12} className="inline mr-1.5" />
                 Username
               </label>
-              <input
+              <input disabled
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
@@ -292,6 +292,10 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
             >
               {showRegister ? 'Back to Admin Login' : 'Client? Add your details'}
             </button>
+<br />
+             <p className="text-center text-[11px] text-gray-600 mt-4">
+          Powered by <span className="text-gray-400">Sammie Hosty</span>
+        </p>
           </div>
         </div>
 
