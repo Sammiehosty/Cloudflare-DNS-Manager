@@ -616,7 +616,7 @@ export const MailManager: React.FC<Props> = ({
       {showDomainModal && selectedDomainInfo && (
         <div className="fixed inset-0 z-[9997] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDomainModal(false)} />
-          <div className="relative w-full max-w-3xl max-h-[60vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-2xl p-5 shadow-2xl">
+          <div className="relative w-full max-w-3xl max-h-[80vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-2xl p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-white">{selectedDomain}</h3>
