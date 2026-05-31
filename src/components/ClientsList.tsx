@@ -380,7 +380,7 @@ export const ClientsList: React.FC<Props> = ({
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
                           <span className="flex items-center gap-1 text-orange-400 truncate">
-                            <Cloud size={8} />
+                            <Cloud size={8px} />
                             {client.cf_zone_name}
                           </span>
                         )}
