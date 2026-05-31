@@ -187,7 +187,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
             {loadingClients ? (
               <div className="flex justify-center py-8"><LoadingSpinner size="md" text="Loading users..." /></div>
             ) : filteredClients.length > 0 ? (
-              <div className="space-y-2 max-h-[420px] overflow-y-auto">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {filteredClients.map(client => (
                   <label
                     key={client.id}
