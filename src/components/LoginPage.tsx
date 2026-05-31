@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftRight, User, Lock, Server, AlertCircle, Eye, EyeOff, Settings, Database, CheckCircle, XCircle, RefreshCw, Plus } from 'lucide-react';
+import { ArrowLeftRight, User, Lock, Server, AlertCircle, Eye, EyeOff, Settings, Database, CheckCircle, XCircle, RefreshCw, Plus, X } from 'lucide-react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as backendApi from '../services/backendApi';
 import { User as UserType } from '../types';
@@ -225,13 +225,13 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
                 <User size={12} className="inline mr-1.5" />
                 Username
               </label>
-              <input 
+              <input
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="admin"
                 required
-                
+                autoFocus
                 className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
               />
             </div>
@@ -286,58 +286,59 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
 
           {/* Footer */}
           <div className="mt-4 pt-4 border-t border-gray-800/50 text-center">
-            <button 
-              onClick={() => { setShowRegister(!showRegister); setRegSuccess(false); }}
+            <p className="text-xs text-gray-600 mb-2">Secure access to HestiaCP + Cloudflare DNS Management</p>
+            <button
+              onClick={() => { setShowRegister(true); setRegSuccess(false); }}
               className="text-xs text-purple-400 hover:text-purple-300 underline"
             >
-              {showRegister ? 'Back to Admin Login' : 'Client? Add your details'}
+              Client? Add your details
             </button>
-<br /><br />
-             <p className="text-xs text-gray-600">
-              Secure access to HestiaCP + Cloudflare DNS Management
-            </p>
           </div>
         </div>
 
-        {/* Registration Form */}
+        {/* Registration Modal */}
         {showRegister && (
-          <div className="mt-4 bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-5 shadow-2xl">
-            <h2 className="text-base font-semibold text-white mb-4">Register Cloudflare Details</h2>
-            {regSuccess ? (
-              <div className="bg-green-900/20 border border-green-700/30 rounded-xl p-4 text-center">
-                <CheckCircle size={32} className="text-green-400 mx-auto mb-2" />
-                <p className="text-green-400 text-sm font-medium">Submitted Successfully!</p>
-                <p className="text-green-400/70 text-xs mt-1">Your details have been saved for the admin.</p>
-                <button 
-                  onClick={() => { setShowRegister(false); setRegSuccess(false); }}
-                  className="mt-4 text-xs text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-all"
-                >
-                  Close
-                </button>
+          <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowRegister(false); setRegSuccess(false); }} />
+            <div className="relative w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Register Cloudflare Details</h2>
+                <button onClick={() => { setShowRegister(false); setRegSuccess(false); }} className="text-gray-500 hover:text-white"><X size={18} /></button>
               </div>
-            ) : (
-              <form onSubmit={handleRegister} className="space-y-3">
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">Your Name / Company</label>
-                  <input type="text" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="John Doe" />
+              {regSuccess ? (
+                <div className="bg-green-900/20 border border-green-700/30 rounded-xl p-5 text-center">
+                  <CheckCircle size={36} className="text-green-400 mx-auto mb-3" />
+                  <p className="text-green-400 text-sm font-medium">Submitted Successfully!</p>
+                  <p className="text-green-400/70 text-xs mt-1">Your details have been saved for the admin to review.</p>
+                  <button onClick={() => { setShowRegister(false); setRegSuccess(false); }}
+                    className="mt-4 text-xs text-white bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg transition-all">
+                    Done
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">Domain (Zone Name)</label>
-                  <input type="text" value={regData.cf_zone_name} onChange={e => setRegData({...regData, cf_zone_name: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="example.com" />
-                </div>
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">Cloudflare API Token</label>
-                  <input type="password" value={regData.cf_api_token} onChange={e => setRegData({...regData, cf_api_token: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="API Token" />
-                </div>
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">Cloudflare Zone ID</label>
-                  <input type="text" value={regData.cf_zone_id} onChange={e => setRegData({...regData, cf_zone_id: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="Zone ID" />
-                </div>
-                <button type="submit" disabled={regLoading} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                  {regLoading ? <LoadingSpinner size="sm" /> : <Plus size={16} />} Submit Details
-                </button>
-              </form>
-            )}
+              ) : (
+                <form onSubmit={handleRegister} className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Your Name / Company</label>
+                    <input type="text" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" placeholder="John Doe / Company Name" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Domain (Zone Name)</label>
+                    <input type="text" value={regData.cf_zone_name} onChange={e => setRegData({...regData, cf_zone_name: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" placeholder="example.com" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Cloudflare API Token</label>
+                    <input type="password" value={regData.cf_api_token} onChange={e => setRegData({...regData, cf_api_token: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" placeholder="Your Cloudflare API Token" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-1">Cloudflare Zone ID</label>
+                    <input type="text" value={regData.cf_zone_id} onChange={e => setRegData({...regData, cf_zone_id: e.target.value})} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" placeholder="Zone ID from Cloudflare Dashboard" />
+                  </div>
+                  <button type="submit" disabled={regLoading} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                    {regLoading ? <LoadingSpinner size="sm" /> : <Plus size={16} />} Submit Details
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         )}
 
