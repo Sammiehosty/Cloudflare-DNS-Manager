@@ -228,7 +228,7 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
               <input 
                 type="text"
                 value={username}
-                disabled
+                
                 placeholder="admin"
                 required
                 autoFocus
