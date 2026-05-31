@@ -172,9 +172,9 @@ export const HestiaConfigPanel: React.FC<Props> = ({
           <div>
             <label className="block text-xs font-medium text-gray-300 mb-1.5">
               <Key size={12} className="inline mr-1.5" />
-              API Key
+              Using API Key
             </label>
-            <input disabled
+            <input disabled hidden
               type="password"
               value={config.apiHash}
               onChange={e => handleChange('apiHash', e.target.value)}
