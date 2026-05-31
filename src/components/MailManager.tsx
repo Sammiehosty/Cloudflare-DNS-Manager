@@ -919,7 +919,7 @@ export const MailManager: React.FC<Props> = ({
                 </div>
               </div>
             )}
-
+   <p className="text-xs text-gray-500 mt-1">If you got any error during installation. It may be that the mail/webmail A records was not pushed to cloudflare. Goto user account and push mail/webmail A record from there before installing SSL</p>
             <div className="flex gap-3">
               <button
                 onClick={handleInstallSsl}
