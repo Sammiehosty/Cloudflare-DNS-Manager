@@ -174,7 +174,7 @@ export const HestiaConfigPanel: React.FC<Props> = ({
               <Key size={12} className="inline mr-1.5" />
               API Key
             </label>
-            <input
+            <input disabled
               type="password"
               value={config.apiHash}
               onChange={e => handleChange('apiHash', e.target.value)}
@@ -271,7 +271,7 @@ export const HestiaConfigPanel: React.FC<Props> = ({
             <User size={14} className="inline mr-1.5" />
             HestiaCP User (to query mail domains)
           </label>
-          <input
+          <input 
             type="text"
             value={config.user}
             onChange={e => handleChange('user', e.target.value)}
