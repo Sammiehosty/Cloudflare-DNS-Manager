@@ -225,10 +225,10 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
                 <User size={12} className="inline mr-1.5" />
                 Username
               </label>
-              <input disabled
+              <input 
                 type="text"
                 value="admin"
-                onChange={e => setUsername(e.target.value)}
+                
                 placeholder="admin"
                 required
                 autoFocus
