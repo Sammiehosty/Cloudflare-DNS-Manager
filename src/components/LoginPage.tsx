@@ -292,7 +292,7 @@ export const LoginPage: React.FC<Props> = ({ onLogin }) => {
             >
               {showRegister ? 'Back to Admin Login' : 'Client? Add your details'}
             </button>
-<br />
+<br /><br />
              <p className="text-xs text-gray-600">
               Secure access to HestiaCP + Cloudflare DNS Management
             </p>
