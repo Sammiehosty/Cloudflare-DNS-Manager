@@ -436,8 +436,8 @@ export const ClientsList: React.FC<Props> = ({
                       </span>
                     )}
                     <button
-                     
-                      className="text-[11px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      onClick={() => setSelectedClient(client)}
+                      className="text-[8px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       title="Edit client"
                     >
                       View Client
@@ -449,7 +449,7 @@ export const ClientsList: React.FC<Props> = ({
                         handleOpenAutoSetup(client);
                       }}
                         disabled={autoSetupClient?.id === client.id}
-                        className="text-[11px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
+                        className="text-[8px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
                         title="Auto setup: create mail domain + push DNS + install SSL"
                       >
                         {autoSetupClient?.id === client.id ? (
@@ -464,7 +464,7 @@ export const ClientsList: React.FC<Props> = ({
                         e.stopPropagation();
                         openEditForm(client);
                       }}
-                      className="text-[11px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      className="text-[8px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       title="Edit client"
                     >
                       Edit
@@ -475,7 +475,7 @@ export const ClientsList: React.FC<Props> = ({
                         void handleDelete(client);
                       }}
                       disabled={deleting === client.id}
-                      className="text-[11px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+                      className="text-[8px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
                       title="Delete client"
                     >
                       {deleting === client.id ? 'Deleting...' : 'Delete'}
