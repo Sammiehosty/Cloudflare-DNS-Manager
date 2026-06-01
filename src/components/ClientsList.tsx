@@ -254,13 +254,13 @@ export const ClientsList: React.FC<Props> = ({
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl max-h-[500px]">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700/50">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="p-4 border-b border-gray-700/50 max-h-[500px]">
+        <div className="flex items-center justify-between flex-wrap gap-3 max-h-[500px]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
               <Users size={20} className="text-white" />
             </div>
-            <div>
+            <div >
               <h3 className="text-lg font-bold text-white">Clients</h3>
               <p className="text-xs text-gray-400">{clients.length} clients registered</p>
             </div>
