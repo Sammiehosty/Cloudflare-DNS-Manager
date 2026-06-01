@@ -371,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3">
+      <div className="p-3 max-h-[260px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
@@ -403,12 +403,12 @@ export const ClientsList: React.FC<Props> = ({
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[11px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[8px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[11px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[8px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
