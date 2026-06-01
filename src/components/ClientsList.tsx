@@ -467,7 +467,7 @@ export const ClientsList: React.FC<Props> = ({
                       className="text-[8px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       title="Edit client"
                     >
-                      Edit
+                      Edit Client
                     </button>
                     <button
                       onClick={(e) => {
