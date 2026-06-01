@@ -230,7 +230,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-stretch md:items-center justify-stretch md:justify-center max-h-500px] overflow-y-auto">
+    <div className="fixed inset-0 z-[10000] flex items-stretch md:items-center justify-stretch md:justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !closing && phase !== 'run' && onClose()} />
       <div className="relative w-full h-full md:h-auto md:max-w-lg md:rounded-2xl bg-gray-900 border-0 md:border md:border-gray-700 md:shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
@@ -250,7 +250,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
         </div>
 
         {/* Body */}
-       <div className="p-5 space-y-3 max-h-500px] overflow-y-auto">
+        <div className="p-5 space-y-3 flex-1 overflow-y-auto">
           {/* PHASE 1: Pre-check */}
           {phase === 'check' && (
             <>
@@ -373,7 +373,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700/50 flex gap-3">
+        <div className="p-4 border-t border-gray-700/50 flex gap-3 mt-auto shrink-0">
           {phase === 'check' && (
             <>
               <button onClick={runSetup}
