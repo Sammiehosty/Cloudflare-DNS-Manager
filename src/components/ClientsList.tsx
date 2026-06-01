@@ -371,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3 max-h-[260px] overflow-y-auto">
+      <div className="p-3 max-h-[300px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
@@ -386,7 +386,7 @@ export const ClientsList: React.FC<Props> = ({
                     ? 'border-blue-500/50 bg-blue-900/10'
                     : 'border-gray-700/40 hover:border-blue-500/30'
                 }`}
-                onClick={() => setSelectedClient(client)}
+               
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
@@ -398,17 +398,17 @@ export const ClientsList: React.FC<Props> = ({
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
                           <span className="flex items-center gap-1 text-orange-400 truncate">
-                            <Cloud size={10} />
+                            <Cloud size={8} />
                             {client.cf_zone_name}
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[8px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[6px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[8px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[6px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
@@ -435,6 +435,13 @@ export const ClientsList: React.FC<Props> = ({
                         CF Connected
                       </span>
                     )}
+                    <button
+                     
+                      className="text-[11px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      title="Edit client"
+                    >
+                      View Client
+                    </button>
                     {hestiaConnected && client.cf_zone_name && client.cf_api_token && client.cf_zone_id && (
                       <button
                       onClick={(e) => {
