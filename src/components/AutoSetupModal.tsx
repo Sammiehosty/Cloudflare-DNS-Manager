@@ -250,7 +250,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-3 flex-1 overflow-y-auto">
+       <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
           {/* PHASE 1: Pre-check */}
           {phase === 'check' && (
             <>
@@ -373,7 +373,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700/50 flex gap-3 mt-auto shrink-0">
+        <div className="p-4 border-t border-gray-700/50 flex gap-3">
           {phase === 'check' && (
             <>
               <button onClick={runSetup}
