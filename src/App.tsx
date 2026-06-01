@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Server, Settings, ArrowLeftRight, Menu, X, LogOut, Save, Users, User, Mail, Globe } from 'lucide-react';
+import { Server, Settings, ArrowLeftRight, ArrowLeft, Menu, X, LogOut, Save, Users, User, Mail, Globe } from 'lucide-react';
 import { useStore } from './store/useStore';
 import { LoginPage } from './components/LoginPage';
 import { HestiaConfigPanel } from './components/HestiaConfigPanel';
@@ -47,6 +47,19 @@ export default function App() {
     { id: 'account', label: 'Admin Account', icon: <User size={18} /> },
     { id: 'settings', label: 'HestiaCP Settings', icon: <Settings size={18} /> },
   ];
+
+  const BackButton = ({ target = 'clients' as Tab }: { target?: Tab }) => (
+    <button
+      onClick={() => {
+        setActiveTab(target);
+        store.setSelectedClient(null);
+      }}
+      className="text-sm text-gray-400 hover:text-white flex items-center gap-1 mb-4"
+    >
+      <ArrowLeft size={16} />
+      Back to {tabs.find(t => t.id === target)?.label || 'Clients'}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -241,6 +254,8 @@ export default function App() {
                   toast={toast}
                   hestiaHostIp={store.hestiaConfig.hostIp || store.hestiaConfig.hostname}
                   confirm={confirm.confirm}
+                  hestiaConfig={store.hestiaConfig}
+                  hestiaConnected={store.hestiaConnected}
                 />
               </>
             )}
@@ -252,6 +267,7 @@ export default function App() {
         {/* Mail Manager Tab */}
         {activeTab === 'mail' && (
           <div className="space-y-6">
+            <BackButton target="clients" />
             <div className="bg-gradient-to-r from-orange-900/30 to-purple-900/30 border border-gray-700/30 rounded-2xl p-6">
               <h2 className="text-2xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-orange-400 to-purple-400 bg-clip-text text-transparent">Mail Manager</span>
@@ -273,6 +289,7 @@ export default function App() {
         {/* Bulk IP Tab */}
         {activeTab === 'bulkip' && (
           <div className="space-y-6">
+            <BackButton target="clients" />
             <BulkIpUpdate clients={store.clients} addLog={store.addLog} toast={toast} />
             <ActivityLog logs={store.logs} />
           </div>
@@ -281,6 +298,7 @@ export default function App() {
         {/* Admin Account Tab */}
         {activeTab === 'account' && (
           <div className="space-y-6">
+            <BackButton target="settings" />
             <div className="bg-gradient-to-r from-fuchsia-900/30 to-purple-900/30 border border-gray-700/30 rounded-2xl p-6">
               <h2 className="text-2xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-fuchsia-400 to-purple-400 bg-clip-text text-transparent">Admin Account</span>
@@ -302,6 +320,7 @@ export default function App() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
+            <BackButton target="clients" />
             {/* Save Button */}
             <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-700/30 rounded-xl p-4 flex items-center justify-between flex-wrap gap-4">
               <div>
