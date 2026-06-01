@@ -250,7 +250,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
         </div>
 
         {/* Body */}
-       <div className="p-5 space-y-3 max-h-[260px] overflow-y-auto">
+       <div className="p-5 space-y-3 max-h-500px] overflow-y-auto">
           {/* PHASE 1: Pre-check */}
           {phase === 'check' && (
             <>
