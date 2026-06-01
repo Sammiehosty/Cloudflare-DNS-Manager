@@ -87,6 +87,7 @@ export const MailManager: React.FC<Props> = ({
   const [changePw, setChangePw] = useState('');
   const [changingPw, setChangingPw] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [showNewAccountPw, setShowNewAccountPw] = useState(false);
 
   // ssl modal flow
   const [sslAction, setSslAction] = useState('');
@@ -616,7 +617,7 @@ export const MailManager: React.FC<Props> = ({
       {showDomainModal && selectedDomainInfo && (
         <div className="fixed inset-0 z-[9997] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDomainModal(false)} />
-          <div className="relative w-full max-w-3xl max-h-[80vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-2xl p-5 shadow-2xl">
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-900 border border-gray-700 rounded-2xl p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-white">{selectedDomain}</h3>
@@ -775,12 +776,23 @@ export const MailManager: React.FC<Props> = ({
               {showAddAccount && selectedDomain && (
                 <div className="p-4 border-b border-gray-700/50 bg-gray-900/30">
                   <p className="text-xs text-gray-400 mb-2">New account for <strong className="text-white">{selectedDomain}</strong></p>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div className="space-y-2 mb-2">
                     <div className="relative">
                       <input type="text" value={newAccount} onChange={e => setNewAccount(e.target.value)} placeholder="username" onKeyDown={e => e.key === 'Enter' && handleAddAccount()} className="w-full bg-gray-800 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 pr-24" />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">@{selectedDomain}</span>
                     </div>
-                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password" onKeyDown={e => e.key === 'Enter' && handleAddAccount()} className="w-full bg-gray-800 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input type={showNewAccountPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Password" onKeyDown={e => e.key === 'Enter' && handleAddAccount()} className="w-full bg-gray-800 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 pr-8" />
+                        <button type="button" onClick={() => setShowNewAccountPw(!showNewAccountPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                          {showNewAccountPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => { const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'; let pwd = ''; for (let i = 0; i < 16; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length)); setNewPassword(pwd); setShowNewAccountPw(true); }}
+                        className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 shrink-0">
+                        <Key size={14} />Generate
+                      </button>
+                    </div>
                   </div>
                   <button onClick={handleAddAccount} disabled={addingAccount || !newAccount.trim() || !newPassword} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5">
                     {addingAccount ? <LoadingSpinner size="sm" /> : <Plus size={14} />}Create Account
@@ -919,8 +931,8 @@ export const MailManager: React.FC<Props> = ({
                 </div>
               </div>
             )}
-   <p className="text-xs text-red-500 mt-1">If you got any error during installation. It may be that the mail/webmail A records was not pushed to cloudflare. Goto user account and push mail/webmail A record from there before installing SSL</p>
-          <br/>  <div className="flex gap-3">
+
+            <div className="flex gap-3">
               <button
                 onClick={handleInstallSsl}
                 disabled={sslStep !== 'idle' || (sslUpdateDnsFirst && (!sslClientId || !serverIp.trim()))}
