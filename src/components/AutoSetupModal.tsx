@@ -230,7 +230,7 @@ export const AutoSetupModal: React.FC<Props> = ({ client, hestiaConfig, addLog, 
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-stretch md:items-center justify-stretch md:justify-center">
+    <div className="fixed inset-0 z-[10000] flex items-stretch md:items-center justify-stretch md:justify-center max-h-[260px] overflow-y-auto">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !closing && phase !== 'run' && onClose()} />
       <div className="relative w-full h-full md:h-auto md:max-w-lg md:rounded-2xl bg-gray-900 border-0 md:border md:border-gray-700 md:shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
