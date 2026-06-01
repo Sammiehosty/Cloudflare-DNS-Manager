@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, UserPlus, Edit2, RefreshCw, Cloud, X, Check, Search } from 'lucide-react';
-import { Client } from '../types';
+import { Users, UserPlus, Edit2, RefreshCw, Cloud, X, Check, Search, Zap } from 'lucide-react';
+import { Client, HestiaConfig } from '../types';
 import { LoadingSpinner } from './LoadingSpinner';
 import type { ToastActions } from './Toast';
 import type { ConfirmFn } from './ConfirmDialog';
+import { AutoSetupModal } from './AutoSetupModal';
 import * as backendApi from '../services/backendApi';
 import * as cfApi from '../services/cloudflareApi';
 
@@ -16,6 +17,8 @@ interface Props {
   toast: ToastActions;
   hestiaHostIp: string;
   confirm: ConfirmFn;
+  hestiaConfig: HestiaConfig;
+  hestiaConnected: boolean;
 }
 
 export const ClientsList: React.FC<Props> = ({
@@ -27,11 +30,14 @@ export const ClientsList: React.FC<Props> = ({
   toast,
   hestiaHostIp,
   confirm,
+  hestiaConfig,
+  hestiaConnected,
 }) => {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [autoSetupClient, setAutoSetupClient] = useState<Client | null>(null);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [hostIpUsage, setHostIpUsage] = useState<Record<number, 'loading' | 'yes' | 'no' | 'unknown'>>({});
@@ -233,6 +239,18 @@ export const ClientsList: React.FC<Props> = ({
     setDeleting(null);
   };
 
+  const handleOpenAutoSetup = (client: Client) => {
+    if (!hestiaConnected || !hestiaConfig.hostname) {
+      toast.error('HestiaCP Required', 'Connect your HestiaCP server first in Settings');
+      return;
+    }
+    if (!client.cf_zone_name) {
+      toast.error('Missing Domain', 'Client must have a Zone Name (domain) set');
+      return;
+    }
+    setAutoSetupClient(client);
+  };
+
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden">
       {/* Header */}
@@ -353,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3 max-h-[300px] overflow-y-auto">
+      <div className="p-3">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
@@ -370,37 +388,37 @@ export const ClientsList: React.FC<Props> = ({
                 }`}
                 onClick={() => setSelectedClient(client)}
               >
-                <div className="flex items-start justify-between gap-3 ">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <div className="w-8 h-8 shrink-0 bg-orange-500/10 border border-orange-400/20 rounded-lg flex items-center justify-center">
                       <Cloud size={14} className="text-orange-400" />
                     </div>
-                    <div className="min-w-0 flex-1 ">
+                    <div className="min-w-0 flex-1">
                       <h4 className="text-white text-sm font-medium truncate">{client.name}</h4>
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
                           <span className="flex items-center gap-1 text-orange-400 truncate">
-                            <Cloud size={6} />
+                            <Cloud size={10} />
                             {client.cf_zone_name}
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[6px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[11px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[6px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[11px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'unknown' && (
-                          <span className="text-[6px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
+                          <span className="text-[11px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
                             Unable to check DNS
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'loading' && (
-                          <span className="text-[6px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
+                          <span className="text-[11px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
                             Checking DNS...
                           </span>
                         )}
@@ -416,6 +434,23 @@ export const ClientsList: React.FC<Props> = ({
                       <span className="text-[11px] bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full hidden sm:inline-flex">
                         CF Connected
                       </span>
+                    )}
+                    {hestiaConnected && client.cf_zone_name && client.cf_api_token && client.cf_zone_id && (
+                      <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenAutoSetup(client);
+                      }}
+                        disabled={autoSetupClient?.id === client.id}
+                        className="text-[11px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
+                        title="Auto setup: create mail domain + push DNS + install SSL"
+                      >
+                        {autoSetupClient?.id === client.id ? (
+                          <span className="flex items-center gap-1"><LoadingSpinner size="sm" />Setting up...</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><Zap size={11} />Auto Setup</span>
+                        )}
+                      </button>
                     )}
                     <button
                       onClick={(e) => {
@@ -457,6 +492,19 @@ export const ClientsList: React.FC<Props> = ({
           </div>
         )}
       </div>
+
+      {/* Auto Setup Modal */}
+      {autoSetupClient && (
+        <AutoSetupModal
+          client={autoSetupClient}
+          hestiaConfig={hestiaConfig}
+          hestiaConnected={hestiaConnected}
+          addLog={addLog}
+          toast={toast}
+          onClose={() => setAutoSetupClient(null)}
+          onComplete={() => fetchClients()}
+        />
+      )}
     </div>
   );
 };
