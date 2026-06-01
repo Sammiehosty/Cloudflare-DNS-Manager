@@ -252,7 +252,7 @@ export const ClientsList: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden">
+    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl max-h-[300px] overflow-y-auto">
       {/* Header */}
       <div className="p-4 border-b border-gray-700/50">
         <div className="flex items-center justify-between flex-wrap gap-3">
