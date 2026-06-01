@@ -350,7 +350,7 @@ export const ClientsList: React.FC<Props> = ({
 
       {/* Search */}
       {clients.length > 0 && (
-        <div className="px-3 pt-3 border-b border-gray-700/30">
+        <div className="px-3 pt-3 border-b border-gray-700/30  max-h-[500px]">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
@@ -371,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3 max-h-[300px] overflow-y-auto">
+      <div className="p-3 max-h-[400px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
