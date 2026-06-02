@@ -477,6 +477,11 @@ export const ClientsList: React.FC<Props> = ({
                 </div>
               </div>
             ))}
+
+
+			  
+		  <br /><br /><br /><br /><br /><br /><br /><br /><br /> <br /><br /><br /><br />
+				
           </div>
         ) : clients.length > 0 ? (
           <div className="text-center py-6">
@@ -492,9 +497,6 @@ export const ClientsList: React.FC<Props> = ({
           </div>
         )}
 
-
-<br /><br /> <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
-				
       </div>
 
       {/* Auto Setup Modal */}
