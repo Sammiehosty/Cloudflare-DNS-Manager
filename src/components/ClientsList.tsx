@@ -491,6 +491,10 @@ export const ClientsList: React.FC<Props> = ({
             <p className="text-[11px] text-gray-500">Click "Add Client" to add your first client</p>
           </div>
         )}
+
+
+
+				<br><br><br><br><br><br><br><br><br><br><br>
       </div>
 
       {/* Auto Setup Modal */}
