@@ -371,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3">
+      <div className="p-3  max-h-[400px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
