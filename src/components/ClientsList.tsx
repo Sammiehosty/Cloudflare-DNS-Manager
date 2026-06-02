@@ -403,28 +403,28 @@ export const ClientsList: React.FC<Props> = ({
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[11px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[8px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[11px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[8px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'unknown' && (
-                          <span className="text-[11px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
+                          <span className="text-[8px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full border border-red-400/20">
                             Unable to check DNS
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'loading' && (
-                          <span className="text-[11px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
+                          <span className="text-[8px] bg-gray-700/40 text-gray-400 px-2 py-0.5 rounded-full">
                             Checking DNS...
                           </span>
                         )}
                       </div>
                       {client.notes && (
-                        <p className="text-[11px] text-gray-500 mt-1 truncate">{client.notes}</p>
+                        <p className="text-[6px] text-gray-500 mt-1 truncate">{client.notes}</p>
                       )}
                     </div>
                   </div>
