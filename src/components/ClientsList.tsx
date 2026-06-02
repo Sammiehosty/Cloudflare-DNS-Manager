@@ -436,21 +436,35 @@ export const ClientsList: React.FC<Props> = ({
                       </span>
                     )}
                     <button
-                      
-                      className="text-[10px] text-green-300 hover:text-green-200 px-2 py-1 rounded-md bg-green-500/10 hover:bg-green-500/15 transition-colors"
+                      onClick={() => setSelectedClient(client)}
+                      className="text-[8px] text-green-300 hover:text-green-200 px-2 py-1 rounded-md bg-green-500/10 hover:bg-green-500/15 transition-colors"
                       title="View client"
                     >
                       View Client
                     </button>
                     {hestiaConnected && client.cf_zone_name && client.cf_api_token && client.cf_zone_id && (
-                      
+                      <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenAutoSetup(client);
+                      }}
+                        disabled={autoSetupClient?.id === client.id}
+                        className="text-[8px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
+                        title="Auto setup: create mail domain + push DNS + install SSL"
+                      >
+                        {autoSetupClient?.id === client.id ? (
+                          <span className="flex items-center gap-1"><LoadingSpinner size="sm" />Setting up...</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><Zap size={11} />Auto Setup</span>
+                        )}
+                      </button>
                     )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditForm(client);
                       }}
-                      className="text-[10px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      className="text-[8px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       title="Edit client"
                     >
                       Edit Client
@@ -461,7 +475,7 @@ export const ClientsList: React.FC<Props> = ({
                         void handleDelete(client);
                       }}
                       disabled={deleting === client.id}
-                      className="text-[10px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+                      className="text-[8px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
                       title="Delete client"
                     >
                       {deleting === client.id ? 'Deleting...' : 'Delete'}
