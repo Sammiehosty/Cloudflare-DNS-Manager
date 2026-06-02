@@ -252,15 +252,15 @@ export const ClientsList: React.FC<Props> = ({
   };
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl max-h-[500px]">
+    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700/50 max-h-[500px]">
-        <div className="flex items-center justify-between flex-wrap gap-3 max-h-[500px]">
+      <div className="p-4 border-b border-gray-700/50">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
               <Users size={20} className="text-white" />
             </div>
-            <div >
+            <div>
               <h3 className="text-lg font-bold text-white">Clients</h3>
               <p className="text-xs text-gray-400">{clients.length} clients registered</p>
             </div>
@@ -371,7 +371,7 @@ export const ClientsList: React.FC<Props> = ({
       )}
 
       {/* Clients List */}
-      <div className="p-3 max-h-[500px] overflow-y-auto">
+      <div className="p-3">
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner size="lg" text="Loading clients..." />
@@ -386,7 +386,7 @@ export const ClientsList: React.FC<Props> = ({
                     ? 'border-blue-500/50 bg-blue-900/10'
                     : 'border-gray-700/40 hover:border-blue-500/30'
                 }`}
-               
+                onClick={() => setSelectedClient(client)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
@@ -398,17 +398,17 @@ export const ClientsList: React.FC<Props> = ({
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
                         {client.cf_zone_name && (
                           <span className="flex items-center gap-1 text-orange-400 truncate">
-                            <Cloud size={8} />
+                            <Cloud size={10} />
                             {client.cf_zone_name}
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'yes' && (
-                          <span className="text-[6px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                          <span className="text-[11px] bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/20">
                             Using Hestia Host IP
                           </span>
                         )}
                         {hostIpUsage[client.id] === 'no' && (
-                          <span className="text-[6px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
+                          <span className="text-[11px] bg-gray-700/40 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600/30">
                             Not using Hestia Host IP
                           </span>
                         )}
@@ -435,13 +435,6 @@ export const ClientsList: React.FC<Props> = ({
                         CF Connected
                       </span>
                     )}
-                    <button
-                      onClick={() => setSelectedClient(client)}
-                      className="text-[8px] text-green-300 hover:text-green-200 px-2 py-1 rounded-md bg-green-500/10 hover:bg-green-500/15 transition-colors"
-                      title="View client"
-                    >
-                      View Client
-                    </button>
                     {hestiaConnected && client.cf_zone_name && client.cf_api_token && client.cf_zone_id && (
                       <button
                       onClick={(e) => {
@@ -449,7 +442,7 @@ export const ClientsList: React.FC<Props> = ({
                         handleOpenAutoSetup(client);
                       }}
                         disabled={autoSetupClient?.id === client.id}
-                        className="text-[8px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
+                        className="text-[11px] text-orange-300 hover:text-orange-200 px-2 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/15 transition-colors disabled:opacity-50"
                         title="Auto setup: create mail domain + push DNS + install SSL"
                       >
                         {autoSetupClient?.id === client.id ? (
@@ -464,10 +457,10 @@ export const ClientsList: React.FC<Props> = ({
                         e.stopPropagation();
                         openEditForm(client);
                       }}
-                      className="text-[8px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      className="text-[11px] text-blue-300 hover:text-blue-200 px-2 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                       title="Edit client"
                     >
-                      Edit Client
+                      Edit
                     </button>
                     <button
                       onClick={(e) => {
@@ -475,7 +468,7 @@ export const ClientsList: React.FC<Props> = ({
                         void handleDelete(client);
                       }}
                       disabled={deleting === client.id}
-                      className="text-[8px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+                      className="text-[11px] text-red-300 hover:text-red-200 px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500/15 transition-colors disabled:opacity-50"
                       title="Delete client"
                     >
                       {deleting === client.id ? 'Deleting...' : 'Delete'}
