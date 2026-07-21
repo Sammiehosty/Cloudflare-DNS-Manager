@@ -12,8 +12,9 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ToastContainer, useToast } from './components/Toast';
 import { useConfirm } from './components/ConfirmDialog';
 import { AdminAccountSection } from './components/AdminAccountSection';
+import { WhmServersPanel } from './components/WhmServersPanel';
 
-type Tab = 'clients' | 'mail' | 'bulkip' | 'account' | 'settings';
+type Tab = 'clients' | 'mail' | 'bulkip' | 'whm' | 'account' | 'settings';
 
 export default function App() {
   const store = useStore();
@@ -44,6 +45,7 @@ export default function App() {
     { id: 'clients', label: 'Clients', icon: <Users size={18} /> },
     { id: 'mail', label: 'Mail Manager', icon: <Mail size={18} /> },
     { id: 'bulkip', label: 'Bulk IP', icon: <Globe size={18} /> },
+    { id: 'whm', label: 'WHM Servers', icon: <Server size={18} /> },
     { id: 'account', label: 'Admin Account', icon: <User size={18} /> },
     { id: 'settings', label: 'HestiaCP Settings', icon: <Settings size={18} /> },
   ];
@@ -291,6 +293,23 @@ export default function App() {
           <div className="space-y-6">
             <BackButton target="clients" />
             <BulkIpUpdate clients={store.clients} addLog={store.addLog} toast={toast} />
+            <ActivityLog logs={store.logs} />
+          </div>
+        )}
+
+        {/* WHM Servers Tab */}
+        {activeTab === 'whm' && (
+          <div className="space-y-6">
+            <BackButton target="clients" />
+            <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-gray-700/30 rounded-2xl p-6">
+              <h2 className="text-2xl font-bold mb-2">
+                <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">WHM Servers</span>
+              </h2>
+              <p className="text-gray-400 text-sm">
+                Add WHMCS-style WHM servers with hostname, username and password. Every 5 minutes, sync WHM account suspension status to Hestia mail domains.
+              </p>
+            </div>
+            <WhmServersPanel addLog={store.addLog} toast={toast} confirm={confirm.confirm} />
             <ActivityLog logs={store.logs} />
           </div>
         )}

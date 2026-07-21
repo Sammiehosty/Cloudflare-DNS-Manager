@@ -1,4 +1,4 @@
-import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client } from '../types';
+import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client, WhmServer, WhmSyncResult } from '../types';
 
 // Backend URL - configurable
 const getBackendUrl = (): string => {
@@ -143,6 +143,42 @@ export async function deleteClient(id: number): Promise<ApiResponse<null>> {
 
 export async function registerClient(client: Partial<Client>): Promise<ApiResponse<Client>> {
   return apiRequest<ApiResponse<Client>>('/clients/register', 'POST', client);
+}
+
+// =====================
+// WHM SERVER ENDPOINTS
+// =====================
+
+export async function getWhmServers(): Promise<ApiResponse<WhmServer[]>> {
+  return apiRequest<ApiResponse<WhmServer[]>>('/whm/servers', 'GET');
+}
+
+export async function createWhmServer(server: Partial<WhmServer>): Promise<ApiResponse<WhmServer>> {
+  return apiRequest<ApiResponse<WhmServer>>('/whm/servers', 'POST', server);
+}
+
+export async function updateWhmServer(id: number, server: Partial<WhmServer>): Promise<ApiResponse<WhmServer>> {
+  return apiRequest<ApiResponse<WhmServer>>(`/whm/servers/${id}`, 'PUT', server);
+}
+
+export async function deleteWhmServer(id: number): Promise<ApiResponse<null>> {
+  return apiRequest<ApiResponse<null>>(`/whm/servers/${id}`, 'DELETE');
+}
+
+export async function testWhmServer(server: Partial<WhmServer> & { server_id?: number }): Promise<ApiResponse<any>> {
+  return apiRequest<ApiResponse<any>>('/whm/test', 'POST', server);
+}
+
+export async function syncWhmServers(serverId?: number): Promise<ApiResponse<{
+  changed: number;
+  errors: number;
+  results: WhmSyncResult[];
+}>> {
+  return apiRequest<ApiResponse<{
+    changed: number;
+    errors: number;
+    results: WhmSyncResult[];
+  }>>('/whm/sync', 'POST', serverId ? { server_id: serverId } : {});
 }
 
 // =====================

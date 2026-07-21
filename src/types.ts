@@ -84,6 +84,33 @@ export interface Client {
   updated_at?: string;
 }
 
+// WHM Servers
+export interface WhmServer {
+  id: number;
+  name: string;
+  hostname: string;
+  port: string;
+  username: string;
+  password?: string;
+  password_masked?: string;
+  use_ssl: boolean;
+  enabled: boolean;
+  last_sync_at?: string | null;
+  last_sync_status?: 'success' | 'error' | 'info' | null;
+  last_sync_message?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WhmSyncResult {
+  server: string;
+  domain: string;
+  whm_status?: 'active' | 'suspended';
+  hestia_action?: 'suspended' | 'unsuspended' | 'none';
+  status: 'success' | 'error';
+  message?: string;
+}
+
 // Cloudflare Types
 export interface CloudflareConfig {
   apiToken: string;
