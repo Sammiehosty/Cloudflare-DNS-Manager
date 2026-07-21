@@ -21,8 +21,10 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [newIp, setNewIp] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showProxyConfirm, setShowProxyConfirm] = useState(false);
   const [scope, setScope] = useState<Scope>('mailwebmail');
   const [updating, setUpdating] = useState(false);
+  const [proxying, setProxying] = useState(false);
   const [results, setResults] = useState<cfApi.BulkUpdateResult[]>([]);
 
   useEffect(() => {
@@ -99,6 +101,14 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
     setShowConfirm(true);
   };
 
+  const handleOpenProxyConfirm = () => {
+    if (selectedClients.length === 0) {
+      toast.error('No Users Selected', 'Select one or more users first');
+      return;
+    }
+    setShowProxyConfirm(true);
+  };
+
   const handleBulkUpdate = async () => {
     setShowConfirm(false);
     setUpdating(true);
@@ -134,6 +144,42 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
     }
 
     setUpdating(false);
+  };
+
+  const handleBulkProxyARecords = async () => {
+    setShowProxyConfirm(false);
+    setProxying(true);
+    setResults([]);
+
+    try {
+      const payloadClients: cfApi.BulkUpdateClient[] = selectedClients.map(c => ({
+        api_token: c.cf_api_token,
+        zone_id: c.cf_zone_id,
+        zone_name: c.cf_zone_name || '',
+      }));
+
+      addLog('Bulk Proxy', `Setting all A records to proxied for ${payloadClients.length} clients`, 'info');
+      toast.info('Bulk Proxy Started', `Updating ${payloadClients.length} selected users...`);
+
+      const result = await cfApi.bulkProxyARecords(payloadClients);
+      setResults(result.results);
+
+      const partialCount = result.results.filter(r => r.status === 'partial').length;
+      const errorCount = result.results.filter(r => r.status === 'error').length;
+
+      if (errorCount === 0 && partialCount === 0) {
+        toast.success('Bulk Proxy Complete', `${result.totalUpdated} A record(s) set to proxied`);
+      } else {
+        toast.warning('Bulk Proxy Finished', `${result.totalUpdated} proxied, ${partialCount + errorCount} users had issues`);
+      }
+
+      addLog('Bulk Proxy', `Completed bulk proxy update: ${result.totalUpdated} A records changed`, 'success');
+    } catch (e: any) {
+      toast.error('Bulk Proxy Failed', e.message || 'Unknown error');
+      addLog('Bulk Proxy', `Failed bulk proxy update: ${e.message}`, 'error');
+    }
+
+    setProxying(false);
   };
 
   return (
@@ -187,7 +233,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
             {loadingClients ? (
               <div className="flex justify-center py-8"><LoadingSpinner size="md" text="Loading users..." /></div>
             ) : filteredClients.length > 0 ? (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              <div className="space-y-2 max-h-[420px] overflow-y-auto">
                 {filteredClients.map(client => (
                   <label
                     key={client.id}
@@ -268,7 +314,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
 
             <button
               onClick={handleOpenConfirm}
-              disabled={!newIp.trim() || selectedClients.length === 0 || updating}
+              disabled={!newIp.trim() || selectedClients.length === 0 || updating || proxying}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
             >
               {updating ? (
@@ -279,6 +325,26 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
                 </>
               )}
             </button>
+
+            <div className="border-t border-gray-700/50 pt-4">
+              <p className="text-xs text-gray-400 mb-2">Cloudflare proxy</p>
+              <p className="text-xs text-gray-500 mb-3">
+                Set every A record in each selected user's zone to proxied without changing the IP address.
+              </p>
+              <button
+                onClick={handleOpenProxyConfirm}
+                disabled={selectedClients.length === 0 || updating || proxying}
+                className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                {proxying ? (
+                  <LoadingSpinner size="sm" text="Proxying..." />
+                ) : (
+                  <>
+                    <Zap size={18} />Proxy All A Records
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -290,8 +356,8 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
             </h3>
           </div>
           <div className="p-4">
-            {updating ? (
-              <div className="flex justify-center py-8"><LoadingSpinner size="md" text="Updating records..." /></div>
+            {updating || proxying ? (
+              <div className="flex justify-center py-8"><LoadingSpinner size="md" text={proxying ? "Proxying A records..." : "Updating records..."} /></div>
             ) : results.length > 0 ? (
               <div className="space-y-2 max-h-[420px] overflow-y-auto">
                 {results.map((r, i) => (
@@ -356,6 +422,42 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
               </button>
               <button
                 onClick={() => setShowConfirm(false)}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2.5 px-4 rounded-lg transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showProxyConfirm && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowProxyConfirm(false)} />
+          <div className="relative w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-4">Confirm Proxy Update</h3>
+            <div className="space-y-3 mb-5 text-sm">
+              <div className="bg-gray-800/50 rounded-lg p-3">
+                <p className="text-gray-400 text-xs mb-1">Action</p>
+                <p className="text-white">Set all Cloudflare A records to proxied</p>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-3">
+                <p className="text-gray-400 text-xs mb-1">Selected Users</p>
+                <p className="text-white">{selectedClients.length}</p>
+              </div>
+            </div>
+            <p className="text-amber-400 text-xs mb-5">
+              This will orange-cloud every A record found in each selected Cloudflare zone immediately.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleBulkProxyARecords}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all"
+              >
+                Yes, Proxy A Records
+              </button>
+              <button
+                onClick={() => setShowProxyConfirm(false)}
                 className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2.5 px-4 rounded-lg transition-all"
               >
                 Cancel

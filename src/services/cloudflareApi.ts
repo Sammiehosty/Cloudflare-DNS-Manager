@@ -141,3 +141,15 @@ export async function bulkUpdateIp(
     totalUpdated: result.total_updated || 0,
   };
 }
+
+export async function bulkProxyARecords(
+  clients: BulkUpdateClient[]
+): Promise<{ results: BulkUpdateResult[]; totalUpdated: number }> {
+  const result = await cfProxyRequest('bulk-proxy-a-records', {
+    clients,
+  });
+  return {
+    results: result.data || [],
+    totalUpdated: result.total_updated || 0,
+  };
+}
