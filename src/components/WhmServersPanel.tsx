@@ -35,6 +35,8 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
   const [autoSync, setAutoSync] = useState(() => localStorage.getItem('whm_auto_sync') !== 'false');
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncResults, setSyncResults] = useState<WhmSyncResult[]>([]);
+  const [liveMessages, setLiveMessages] = useState<string[]>([]);
+  const [syncStartedAt, setSyncStartedAt] = useState<Date | null>(null);
 
   const enabledServers = useMemo(() => servers.filter(s => s.enabled), [servers]);
 
@@ -153,16 +155,49 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
   const runSync = async (silent = false) => {
     if (syncing) return;
     setSyncing(true);
+    setSyncStartedAt(new Date());
+    setLiveMessages([
+      `${new Date().toLocaleTimeString()} - Starting WHM sync`,
+      `${new Date().toLocaleTimeString()} - Checking ${enabledServers.length} enabled WHM server(s)`,
+      `${new Date().toLocaleTimeString()} - Contacting backend sync worker`,
+    ]);
+
+    let waitingTicks = 0;
+    const waitingTimer = window.setInterval(() => {
+      waitingTicks += 1;
+      setLiveMessages(prev => [
+        ...prev,
+        `${new Date().toLocaleTimeString()} - Still syncing WHM accounts and Hestia mail domains (${waitingTicks * 5}s elapsed)`,
+      ].slice(-80));
+    }, 5000);
+
     try {
       if (!silent) toast.info('WHM Sync Started', 'Checking account status and syncing Hestia mail domains...');
       const resp = await backendApi.syncWhmServers();
+      window.clearInterval(waitingTimer);
+
       const results = resp.data?.results || [];
       setSyncResults(results);
       setLastSync(new Date());
+      setLiveMessages(prev => [
+        ...prev,
+        `${new Date().toLocaleTimeString()} - Backend sync finished, processing ${results.length} result(s)`,
+        ...results.slice(0, 80).map(result => {
+          const domain = result.domain || 'server-level check';
+          const action = result.hestia_action && result.hestia_action !== 'none' ? `, Hestia ${result.hestia_action}` : '';
+          const status = result.whm_status ? `WHM ${result.whm_status}` : result.status;
+          const suffix = result.message ? ` (${result.message})` : '';
+          return `${new Date().toLocaleTimeString()} - ${result.server}: ${domain} - ${status}${action}${suffix}`;
+        }),
+      ].slice(-120));
       await loadServers();
 
       const changed = resp.data?.changed || 0;
       const errors = resp.data?.errors || 0;
+      setLiveMessages(prev => [
+        ...prev,
+        `${new Date().toLocaleTimeString()} - Sync complete: ${changed} action(s), ${errors} error(s)`,
+      ].slice(-120));
       if (errors > 0) {
         toast.warning('WHM Sync Finished', `${changed} action(s), ${errors} error(s)`);
       } else if (!silent) {
@@ -170,6 +205,11 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
       }
       addLog('WHM Sync', `Completed WHM sync: ${changed} action(s), ${errors} error(s)`, errors ? 'error' : 'success');
     } catch (e: any) {
+      window.clearInterval(waitingTimer);
+      setLiveMessages(prev => [
+        ...prev,
+        `${new Date().toLocaleTimeString()} - Sync failed: ${e.message || 'Unknown error'}`,
+      ].slice(-120));
       if (!silent) toast.error('WHM Sync Failed', e.message || 'Sync failed');
       addLog('WHM Sync', `Sync failed: ${e.message}`, 'error');
     }
@@ -282,6 +322,26 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
             <Check size={18} className="text-green-400" />Sync Results
           </h3>
           <p className="text-xs text-gray-500">{lastSync ? `Last run: ${lastSync.toLocaleTimeString()}` : 'No sync run yet'}</p>
+        </div>
+        <div className="mb-4 bg-gray-950/60 border border-gray-700/40 rounded-lg overflow-hidden">
+          <div className="px-3 py-2 border-b border-gray-700/40 flex items-center justify-between">
+            <p className="text-xs font-semibold text-gray-300 flex items-center gap-2">
+              <RefreshCw size={13} className={syncing ? 'animate-spin text-orange-400' : 'text-gray-500'} />
+              Live Sync Activity
+            </p>
+            <p className="text-[11px] text-gray-500">
+              {syncing && syncStartedAt ? `Running since ${syncStartedAt.toLocaleTimeString()}` : 'Idle'}
+            </p>
+          </div>
+          <div className="max-h-48 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed">
+            {liveMessages.length > 0 ? (
+              liveMessages.map((message, index) => (
+                <p key={`${message}-${index}`} className="text-gray-400 whitespace-pre-wrap">{message}</p>
+              ))
+            ) : (
+              <p className="text-gray-600">Start a sync to see live activity here.</p>
+            )}
+          </div>
         </div>
         {syncResults.length > 0 ? (
           <div className="space-y-2 max-h-[320px] overflow-y-auto">
