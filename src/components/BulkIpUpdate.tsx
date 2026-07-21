@@ -158,7 +158,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
         zone_name: c.cf_zone_name || '',
       }));
 
-      addLog('Bulk Proxy', `Setting all A records to proxied for ${payloadClients.length} clients`, 'info');
+      addLog('Bulk Proxy', `Setting root A records to proxied for ${payloadClients.length} clients`, 'info');
       toast.info('Bulk Proxy Started', `Updating ${payloadClients.length} selected users...`);
 
       const result = await cfApi.bulkProxyARecords(payloadClients);
@@ -168,12 +168,12 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
       const errorCount = result.results.filter(r => r.status === 'error').length;
 
       if (errorCount === 0 && partialCount === 0) {
-        toast.success('Bulk Proxy Complete', `${result.totalUpdated} A record(s) set to proxied`);
+        toast.success('Bulk Proxy Complete', `${result.totalUpdated} root A record(s) set to proxied`);
       } else {
         toast.warning('Bulk Proxy Finished', `${result.totalUpdated} proxied, ${partialCount + errorCount} users had issues`);
       }
 
-      addLog('Bulk Proxy', `Completed bulk proxy update: ${result.totalUpdated} A records changed`, 'success');
+      addLog('Bulk Proxy', `Completed bulk proxy update: ${result.totalUpdated} root A records changed`, 'success');
     } catch (e: any) {
       toast.error('Bulk Proxy Failed', e.message || 'Unknown error');
       addLog('Bulk Proxy', `Failed bulk proxy update: ${e.message}`, 'error');
@@ -329,7 +329,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
             <div className="border-t border-gray-700/50 pt-4">
               <p className="text-xs text-gray-400 mb-2">Cloudflare proxy</p>
               <p className="text-xs text-gray-500 mb-3">
-                Set every A record in each selected user's zone to proxied without changing the IP address.
+                Set only the root A record in each selected user's zone to proxied without changing the IP address.
               </p>
               <button
                 onClick={handleOpenProxyConfirm}
@@ -340,7 +340,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
                   <LoadingSpinner size="sm" text="Proxying..." />
                 ) : (
                   <>
-                    <Zap size={18} />Proxy All A Records
+                    <Zap size={18} />Proxy Root A Records
                   </>
                 )}
               </button>
@@ -439,7 +439,7 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
             <div className="space-y-3 mb-5 text-sm">
               <div className="bg-gray-800/50 rounded-lg p-3">
                 <p className="text-gray-400 text-xs mb-1">Action</p>
-                <p className="text-white">Set all Cloudflare A records to proxied</p>
+                <p className="text-white">Set only the root Cloudflare A record to proxied</p>
               </div>
               <div className="bg-gray-800/50 rounded-lg p-3">
                 <p className="text-gray-400 text-xs mb-1">Selected Users</p>
@@ -447,14 +447,14 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
               </div>
             </div>
             <p className="text-amber-400 text-xs mb-5">
-              This will orange-cloud every A record found in each selected Cloudflare zone immediately.
+              This will orange-cloud only the root A record for each selected Cloudflare zone. Mail, webmail, and other subdomain A records will be skipped.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleBulkProxyARecords}
                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all"
               >
-                Yes, Proxy A Records
+                Yes, Proxy Root A Records
               </button>
               <button
                 onClick={() => setShowProxyConfirm(false)}
