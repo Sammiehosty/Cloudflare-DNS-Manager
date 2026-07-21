@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Play, Plus, RefreshCw, Save, Server, Trash2, X, AlertCircle } from 'lucide-react';
-import type { WhmServer, WhmSyncResult } from '../types';
+import { Check, Play, Plus, RefreshCw, Save, Server, Trash2, X, AlertCircle, CheckSquare, Square } from 'lucide-react';
+import type { WhmAccount, WhmServer, WhmSyncResult } from '../types';
 import type { ConfirmFn } from './ConfirmDialog';
 import type { ToastActions } from './Toast';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -37,11 +37,36 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
   const [syncResults, setSyncResults] = useState<WhmSyncResult[]>([]);
   const [liveMessages, setLiveMessages] = useState<string[]>([]);
   const [syncStartedAt, setSyncStartedAt] = useState<Date | null>(null);
+  const [accounts, setAccounts] = useState<WhmAccount[]>([]);
+  const [accountErrors, setAccountErrors] = useState<Array<{ server_id: number; server_name: string; message: string }>>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(new Set());
+  const [accountSearch, setAccountSearch] = useState('');
 
   const enabledServers = useMemo(() => servers.filter(s => s.enabled), [servers]);
+  const filteredAccounts = useMemo(() => {
+    if (!accountSearch.trim()) return accounts;
+    const q = accountSearch.toLowerCase();
+    return accounts.filter(account =>
+      account.domain.toLowerCase().includes(q) ||
+      account.user.toLowerCase().includes(q) ||
+      account.server_name.toLowerCase().includes(q)
+    );
+  }, [accounts, accountSearch]);
+
+  const accountKey = (account: Pick<WhmAccount, 'server_id' | 'domain' | 'user'>) =>
+    `${account.server_id}:${account.domain || ''}:${account.user || ''}`;
+
+  const selectedAccountPayload = useMemo(
+    () => accounts
+      .filter(account => selectedAccounts.has(accountKey(account)))
+      .map(account => ({ server_id: account.server_id, domain: account.domain, user: account.user })),
+    [accounts, selectedAccounts]
+  );
 
   useEffect(() => {
     void loadServers();
+    void loadAccounts();
   }, []);
 
   useEffect(() => {
@@ -66,6 +91,47 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
       toast.error('WHM Servers', e.message || 'Failed to load WHM servers');
     }
     setLoading(false);
+  };
+
+  const loadAccounts = async () => {
+    setLoadingAccounts(true);
+    try {
+      const resp = await backendApi.getWhmAccounts();
+      if (resp.success && resp.data) {
+        setAccounts(resp.data.accounts || []);
+        setAccountErrors(resp.data.errors || []);
+        setSelectedAccounts(prev => {
+          const valid = new Set((resp.data?.accounts || []).map(accountKey));
+          return new Set([...prev].filter(key => valid.has(key)));
+        });
+      }
+    } catch (e: any) {
+      toast.error('cPanel Accounts', e.message || 'Failed to load cPanel accounts');
+    }
+    setLoadingAccounts(false);
+  };
+
+  const toggleAccount = (account: WhmAccount) => {
+    const key = accountKey(account);
+    setSelectedAccounts(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleVisibleAccounts = () => {
+    const visibleKeys = filteredAccounts.map(accountKey);
+    const allSelected = visibleKeys.length > 0 && visibleKeys.every(key => selectedAccounts.has(key));
+    setSelectedAccounts(prev => {
+      const next = new Set(prev);
+      if (allSelected) {
+        visibleKeys.forEach(key => next.delete(key));
+      } else {
+        visibleKeys.forEach(key => next.add(key));
+      }
+      return next;
+    });
   };
 
   const resetForm = () => {
@@ -112,6 +178,7 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
       }
       resetForm();
       await loadServers();
+      await loadAccounts();
     } catch (e: any) {
       toast.error('Save Failed', e.message || 'Could not save WHM server');
       addLog('WHM', `Save failed: ${e.message}`, 'error');
@@ -147,6 +214,7 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
       toast.success('WHM Server Deleted', server.name);
       addLog('WHM', `Deleted WHM server: ${server.name}`, 'success');
       await loadServers();
+      await loadAccounts();
     } catch (e: any) {
       toast.error('Delete Failed', e.message || 'Could not delete WHM server');
     }
@@ -154,11 +222,15 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
 
   const runSync = async (silent = false) => {
     if (syncing) return;
+    const selectedForThisRun = silent ? [] : selectedAccountPayload;
     setSyncing(true);
     setSyncStartedAt(new Date());
     setLiveMessages([
       `${new Date().toLocaleTimeString()} - Starting WHM sync`,
       `${new Date().toLocaleTimeString()} - Checking ${enabledServers.length} enabled WHM server(s)`,
+      selectedForThisRun.length > 0
+        ? `${new Date().toLocaleTimeString()} - Sync scope: ${selectedForThisRun.length} selected cPanel account(s)`
+        : `${new Date().toLocaleTimeString()} - Sync scope: all cPanel accounts`,
       `${new Date().toLocaleTimeString()} - Contacting backend sync worker`,
     ]);
 
@@ -173,7 +245,7 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
 
     try {
       if (!silent) toast.info('WHM Sync Started', 'Checking account status and syncing Hestia mail domains...');
-      const resp = await backendApi.syncWhmServers();
+      const resp = await backendApi.syncWhmServers(undefined, selectedForThisRun);
       window.clearInterval(waitingTimer);
 
       const results = resp.data?.results || [];
@@ -194,6 +266,7 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
 
       const changed = resp.data?.changed || 0;
       const errors = resp.data?.errors || 0;
+      await loadAccounts();
       setLiveMessages(prev => [
         ...prev,
         `${new Date().toLocaleTimeString()} - Sync complete: ${changed} action(s), ${errors} error(s)`,
@@ -275,7 +348,7 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
                 5 min sync
               </label>
               <button onClick={() => void runSync(false)} disabled={syncing || enabledServers.length === 0} className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2">
-                {syncing ? <LoadingSpinner size="sm" text="Syncing..." /> : <><RefreshCw size={14} />Sync Now</>}
+                {syncing ? <LoadingSpinner size="sm" text="Syncing..." /> : <><RefreshCw size={14} />{selectedAccounts.size > 0 ? `Sync Selected (${selectedAccounts.size})` : 'Sync All'}</>}
               </button>
             </div>
           </div>
@@ -313,6 +386,82 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
               <p className="text-gray-500 text-sm text-center py-8">No WHM servers added yet</p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-gray-700/50 flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              <Server size={18} className="text-blue-400" />Connected cPanel Accounts
+              <span className="text-xs text-gray-500 bg-gray-700/50 px-2 py-0.5 rounded-full">{selectedAccounts.size}/{accounts.length} selected</span>
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Select one or more accounts, then click Sync Now to sync only those accounts. Leave none selected to sync all.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={toggleVisibleAccounts} disabled={filteredAccounts.length === 0} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2">
+              {filteredAccounts.length > 0 && filteredAccounts.every(account => selectedAccounts.has(accountKey(account))) ? <CheckSquare size={14} /> : <Square size={14} />}
+              {filteredAccounts.length > 0 && filteredAccounts.every(account => selectedAccounts.has(accountKey(account))) ? 'Deselect Visible' : 'Select Visible'}
+            </button>
+            <button onClick={() => void loadAccounts()} disabled={loadingAccounts} className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2">
+              {loadingAccounts ? <LoadingSpinner size="sm" text="Loading..." /> : <><RefreshCw size={14} />Refresh Accounts</>}
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 border-b border-gray-700/30">
+          <input
+            value={accountSearch}
+            onChange={e => setAccountSearch(e.target.value)}
+            placeholder="Search cPanel accounts, domains, users, or WHM servers..."
+            className="w-full bg-gray-900/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500"
+          />
+        </div>
+
+        <div className="p-4">
+          {loadingAccounts ? (
+            <div className="flex justify-center py-8"><LoadingSpinner size="md" text="Loading cPanel accounts..." /></div>
+          ) : filteredAccounts.length > 0 ? (
+            <div className="space-y-2 max-h-[360px] overflow-y-auto">
+              {filteredAccounts.map(account => {
+                const key = accountKey(account);
+                const selected = selectedAccounts.has(key);
+                return (
+                  <label key={key} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${selected ? 'bg-blue-600/15 border-blue-500/30' : 'bg-gray-900/40 border-gray-700/40 hover:border-blue-500/20'}`}>
+                    <input type="checkbox" checked={selected} onChange={() => toggleAccount(account)} className="rounded bg-gray-800 border-gray-600 text-blue-500" />
+                    <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_0.7fr_0.8fr_auto] gap-2 md:items-center">
+                      <div className="min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{account.domain}</p>
+                        <p className="text-gray-500 text-xs truncate">{account.user}</p>
+                      </div>
+                      <p className="text-gray-400 text-xs truncate">{account.server_name}</p>
+                      <p className="text-gray-500 text-xs truncate">{account.owner ? `Owner: ${account.owner}` : 'Owner unavailable'}</p>
+                      <span className={`text-[10px] px-2 py-1 rounded-full text-center ${account.suspended ? 'bg-red-900/30 text-red-300' : 'bg-green-900/30 text-green-300'}`}>
+                        {account.suspended ? 'Suspended' : 'Active'}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm text-center py-8">
+              {accounts.length === 0 ? 'No cPanel accounts loaded. Add an enabled WHM server, then refresh accounts.' : 'No matching cPanel accounts'}
+            </p>
+          )}
+
+          {accountErrors.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {accountErrors.map(error => (
+                <div key={`${error.server_id}-${error.message}`} className="bg-red-900/10 border border-red-700/30 rounded-lg p-3">
+                  <p className="text-red-300 text-xs font-medium">{error.server_name}</p>
+                  <p className="text-gray-400 text-xs mt-1">{error.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

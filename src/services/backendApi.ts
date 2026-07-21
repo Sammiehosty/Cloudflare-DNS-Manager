@@ -1,4 +1,4 @@
-import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client, WhmServer, WhmSyncResult } from '../types';
+import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client, WhmServer, WhmSyncResult, WhmAccount, WhmAccountList } from '../types';
 
 // Backend URL - configurable
 const getBackendUrl = (): string => {
@@ -169,16 +169,23 @@ export async function testWhmServer(server: Partial<WhmServer> & { server_id?: n
   return apiRequest<ApiResponse<any>>('/whm/test', 'POST', server);
 }
 
-export async function syncWhmServers(serverId?: number): Promise<ApiResponse<{
+export async function getWhmAccounts(): Promise<ApiResponse<WhmAccountList>> {
+  return apiRequest<ApiResponse<WhmAccountList>>('/whm/accounts', 'GET');
+}
+
+export async function syncWhmServers(serverId?: number, accounts?: Pick<WhmAccount, 'server_id' | 'domain' | 'user'>[]): Promise<ApiResponse<{
   changed: number;
   errors: number;
   results: WhmSyncResult[];
 }>> {
+  const payload: Record<string, any> = {};
+  if (serverId) payload.server_id = serverId;
+  if (accounts && accounts.length > 0) payload.accounts = accounts;
   return apiRequest<ApiResponse<{
     changed: number;
     errors: number;
     results: WhmSyncResult[];
-  }>>('/whm/sync', 'POST', serverId ? { server_id: serverId } : {});
+  }>>('/whm/sync', 'POST', payload);
 }
 
 // =====================

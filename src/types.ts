@@ -102,6 +102,25 @@ export interface WhmServer {
   updated_at?: string;
 }
 
+export interface WhmAccount {
+  server_id: number;
+  server_name: string;
+  domain: string;
+  user: string;
+  owner: string;
+  suspended: boolean;
+  suspendreason?: string;
+}
+
+export interface WhmAccountList {
+  accounts: WhmAccount[];
+  errors: Array<{
+    server_id: number;
+    server_name: string;
+    message: string;
+  }>;
+}
+
 export interface WhmSyncResult {
   server: string;
   domain: string;
