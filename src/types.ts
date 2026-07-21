@@ -125,8 +125,9 @@ export interface WhmSyncResult {
   server: string;
   domain: string;
   whm_status?: 'active' | 'suspended';
+  hestia_status?: string;
   hestia_action?: 'suspended' | 'unsuspended' | 'none';
-  status: 'success' | 'error';
+  status: 'success' | 'error' | 'skipped';
   message?: string;
 }
 

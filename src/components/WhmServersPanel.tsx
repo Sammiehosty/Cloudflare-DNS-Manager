@@ -258,8 +258,9 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
           const domain = result.domain || 'server-level check';
           const action = result.hestia_action && result.hestia_action !== 'none' ? `, Hestia ${result.hestia_action}` : '';
           const status = result.whm_status ? `WHM ${result.whm_status}` : result.status;
-          const suffix = result.message ? ` (${result.message})` : '';
-          return `${new Date().toLocaleTimeString()} - ${result.server}: ${domain} - ${status}${action}${suffix}`;
+          const hestia = result.hestia_status ? `, Hestia status: ${result.hestia_status}` : '';
+          const suffix = result.message ? ` - ${result.message}` : '';
+          return `${new Date().toLocaleTimeString()} - ${result.server}: ${domain} - ${status}${hestia}${action}${suffix}`;
         }),
       ].slice(-120));
       await loadServers();
@@ -495,14 +496,21 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
         {syncResults.length > 0 ? (
           <div className="space-y-2 max-h-[320px] overflow-y-auto">
             {syncResults.slice(0, 100).map((result, index) => (
-              <div key={`${result.server}-${result.domain}-${index}`} className={`p-3 rounded-lg border ${result.status === 'success' ? 'bg-green-900/10 border-green-700/30' : 'bg-red-900/10 border-red-700/30'}`}>
+              <div key={`${result.server}-${result.domain}-${index}`} className={`p-3 rounded-lg border ${
+                result.status === 'success'
+                  ? 'bg-green-900/10 border-green-700/30'
+                  : result.status === 'skipped'
+                    ? 'bg-amber-900/10 border-amber-700/30'
+                    : 'bg-red-900/10 border-red-700/30'
+              }`}>
                 <div className="flex items-center gap-2">
-                  {result.status === 'success' ? <Check size={14} className="text-green-400" /> : <AlertCircle size={14} className="text-red-400" />}
+                  {result.status === 'success' ? <Check size={14} className="text-green-400" /> : <AlertCircle size={14} className={result.status === 'skipped' ? 'text-amber-400' : 'text-red-400'} />}
                   <p className="text-sm text-white">{result.domain || result.server}</p>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   {result.server}
                   {result.whm_status ? ` · WHM: ${result.whm_status}` : ''}
+                  {result.hestia_status ? ` · Hestia status: ${result.hestia_status}` : ''}
                   {result.hestia_action ? ` · Hestia: ${result.hestia_action}` : ''}
                   {result.message ? ` · ${result.message}` : ''}
                 </p>
