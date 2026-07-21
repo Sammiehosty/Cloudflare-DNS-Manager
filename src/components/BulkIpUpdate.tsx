@@ -286,8 +286,8 @@ export const BulkIpUpdate: React.FC<Props> = ({ clients, addLog, toast }) => {
               <div className="space-y-2">
                 {[
                   { value: 'mailwebmail', label: 'Mail / Webmail records', desc: 'Update mail.domain.com and webmail.domain.com A records' },
-                  { value: 'root', label: 'Root record', desc: 'Update the root A record (@ / domain.com)' },
-                  { value: 'both', label: 'Both', desc: 'Update root + mail + webmail A records' },
+                  { value: 'root', label: 'Root record', desc: 'Update and proxy the root A record (@ / domain.com)' },
+                  { value: 'both', label: 'Both', desc: 'Update root + mail + webmail A records; root will be proxied' },
                 ].map(option => (
                   <label
                     key={option.value}
