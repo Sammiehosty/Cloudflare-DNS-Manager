@@ -1,4 +1,4 @@
-import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client, WhmServer, WhmSyncResult, WhmAccount, WhmAccountList } from '../types';
+import { AuthResponse, ApiResponse, UserConfig, User, HestiaConfig, Client, WhmServer, WhmAccount, WhmAccountList, WhmSyncJob } from '../types';
 
 // Backend URL - configurable
 const getBackendUrl = (): string => {
@@ -173,19 +173,24 @@ export async function getWhmAccounts(): Promise<ApiResponse<WhmAccountList>> {
   return apiRequest<ApiResponse<WhmAccountList>>('/whm/accounts', 'GET');
 }
 
-export async function syncWhmServers(serverId?: number, accounts?: Pick<WhmAccount, 'server_id' | 'domain' | 'user'>[]): Promise<ApiResponse<{
-  changed: number;
-  errors: number;
-  results: WhmSyncResult[];
-}>> {
+export async function syncWhmServers(
+  serverId?: number,
+  accounts?: Pick<WhmAccount, 'server_id' | 'domain' | 'user'>[],
+  dryRun = false
+): Promise<ApiResponse<WhmSyncJob>> {
   const payload: Record<string, any> = {};
   if (serverId) payload.server_id = serverId;
   if (accounts && accounts.length > 0) payload.accounts = accounts;
-  return apiRequest<ApiResponse<{
-    changed: number;
-    errors: number;
-    results: WhmSyncResult[];
-  }>>('/whm/sync', 'POST', payload);
+  if (dryRun) payload.dry_run = true;
+  return apiRequest<ApiResponse<WhmSyncJob>>('/whm/sync', 'POST', payload);
+}
+
+export async function getWhmSyncJob(jobId: number): Promise<ApiResponse<WhmSyncJob>> {
+  return apiRequest<ApiResponse<WhmSyncJob>>(`/whm/jobs/${jobId}`, 'GET');
+}
+
+export async function runWhmSyncJob(jobId: number): Promise<ApiResponse<WhmSyncJob>> {
+  return apiRequest<ApiResponse<WhmSyncJob>>(`/whm/jobs/${jobId}/run`, 'POST');
 }
 
 // =====================

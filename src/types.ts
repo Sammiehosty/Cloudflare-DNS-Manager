@@ -122,13 +122,35 @@ export interface WhmAccountList {
 }
 
 export interface WhmSyncResult {
+  id?: number;
+  job_id?: number;
   server: string;
+  server_name?: string;
   domain: string;
   whm_status?: 'active' | 'suspended';
   hestia_status?: string;
   hestia_action?: 'suspended' | 'unsuspended' | 'none';
-  status: 'success' | 'error' | 'skipped';
+  status: 'success' | 'error' | 'skipped' | 'planned';
   message?: string;
+  created_at?: string;
+}
+
+export interface WhmSyncJob {
+  id: number;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  dry_run: boolean;
+  source: 'manual' | 'cron' | string;
+  selected_accounts: Array<Pick<WhmAccount, 'server_id' | 'domain' | 'user'>>;
+  total_accounts: number;
+  processed_accounts: number;
+  changed_count: number;
+  error_count: number;
+  message?: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  results: WhmSyncResult[];
 }
 
 // Cloudflare Types

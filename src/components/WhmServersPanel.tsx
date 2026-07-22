@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Play, Plus, RefreshCw, Save, Server, Trash2, X, AlertCircle, CheckSquare, Square } from 'lucide-react';
-import type { WhmAccount, WhmServer, WhmSyncResult } from '../types';
+import { Check, Play, Plus, RefreshCw, Save, Server, Trash2, X, AlertCircle, CheckSquare, Square, ShieldCheck } from 'lucide-react';
+import type { WhmAccount, WhmServer, WhmSyncJob, WhmSyncResult } from '../types';
 import type { ConfirmFn } from './ConfirmDialog';
 import type { ToastActions } from './Toast';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -35,6 +35,8 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
   const [autoSync, setAutoSync] = useState(() => localStorage.getItem('whm_auto_sync') !== 'false');
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncResults, setSyncResults] = useState<WhmSyncResult[]>([]);
+  const [currentJob, setCurrentJob] = useState<WhmSyncJob | null>(null);
+  const [dryRun, setDryRun] = useState(false);
   const [liveMessages, setLiveMessages] = useState<string[]>([]);
   const [syncStartedAt, setSyncStartedAt] = useState<Date | null>(null);
   const [accounts, setAccounts] = useState<WhmAccount[]>([]);
@@ -220,70 +222,95 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
     }
   };
 
+  const sleep = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  const normalizeResults = (job: WhmSyncJob) =>
+    (job.results || []).map(result => ({
+      ...result,
+      server: result.server || result.server_name || 'WHM Server',
+    }));
+
+  const appendJobMessages = (job: WhmSyncJob, previousResultCount: number) => {
+    const newResults = normalizeResults(job).slice(previousResultCount);
+    setLiveMessages(prev => [
+      ...prev,
+      `${new Date().toLocaleTimeString()} - Job #${job.id}: ${job.message || job.status} (${job.processed_accounts}/${job.total_accounts || '?'} account(s))`,
+      ...newResults.map(result => {
+        const domain = result.domain || 'server-level check';
+        const action = result.hestia_action && result.hestia_action !== 'none' ? `, Hestia ${result.hestia_action}` : '';
+        const status = result.whm_status ? `WHM ${result.whm_status}` : result.status;
+        const hestia = result.hestia_status ? `, Hestia status: ${result.hestia_status}` : '';
+        const suffix = result.message ? ` - ${result.message}` : '';
+        return `${new Date().toLocaleTimeString()} - ${result.server}: ${domain} - ${status}${hestia}${action}${suffix}`;
+      }),
+    ].slice(-140));
+  };
+
   const runSync = async (silent = false) => {
     if (syncing) return;
     const selectedForThisRun = silent ? [] : selectedAccountPayload;
+    const runIsDry = silent ? false : dryRun;
     setSyncing(true);
     setSyncStartedAt(new Date());
+    setCurrentJob(null);
+    setSyncResults([]);
     setLiveMessages([
-      `${new Date().toLocaleTimeString()} - Starting WHM sync`,
+      `${new Date().toLocaleTimeString()} - Starting ${runIsDry ? 'dry-run ' : ''}WHM sync`,
       `${new Date().toLocaleTimeString()} - Checking ${enabledServers.length} enabled WHM server(s)`,
       selectedForThisRun.length > 0
         ? `${new Date().toLocaleTimeString()} - Sync scope: ${selectedForThisRun.length} selected cPanel account(s)`
         : `${new Date().toLocaleTimeString()} - Sync scope: all cPanel accounts`,
-      `${new Date().toLocaleTimeString()} - Contacting backend sync worker`,
+      `${new Date().toLocaleTimeString()} - Queuing backend sync job`,
     ]);
 
-    let waitingTicks = 0;
-    const waitingTimer = window.setInterval(() => {
-      waitingTicks += 1;
-      setLiveMessages(prev => [
-        ...prev,
-        `${new Date().toLocaleTimeString()} - Still syncing WHM accounts and Hestia mail domains (${waitingTicks * 5}s elapsed)`,
-      ].slice(-80));
-    }, 5000);
-
     try {
-      if (!silent) toast.info('WHM Sync Started', 'Checking account status and syncing Hestia mail domains...');
-      const resp = await backendApi.syncWhmServers(undefined, selectedForThisRun);
-      window.clearInterval(waitingTimer);
+      if (!silent) toast.info(runIsDry ? 'Dry Run Started' : 'WHM Sync Started', 'The backend queue is processing accounts in batches...');
+      const resp = await backendApi.syncWhmServers(undefined, selectedForThisRun, runIsDry);
+      if (!resp.data) throw new Error('Sync job was not created');
 
-      const results = resp.data?.results || [];
+      let job = resp.data;
+      let previousResultCount = 0;
+      setCurrentJob(job);
+      appendJobMessages(job, previousResultCount);
+
+      while (job.status === 'queued' || job.status === 'running') {
+        previousResultCount = (job.results || []).length;
+        await sleep(600);
+        const tick = await backendApi.runWhmSyncJob(job.id);
+        if (!tick.data) throw new Error('Sync job update was empty');
+        job = tick.data;
+        setCurrentJob(job);
+        setSyncResults(normalizeResults(job));
+        appendJobMessages(job, previousResultCount);
+      }
+
+      const results = normalizeResults(job);
       setSyncResults(results);
       setLastSync(new Date());
       setLiveMessages(prev => [
         ...prev,
-        `${new Date().toLocaleTimeString()} - Backend sync finished, processing ${results.length} result(s)`,
-        ...results.slice(0, 80).map(result => {
-          const domain = result.domain || 'server-level check';
-          const action = result.hestia_action && result.hestia_action !== 'none' ? `, Hestia ${result.hestia_action}` : '';
-          const status = result.whm_status ? `WHM ${result.whm_status}` : result.status;
-          const hestia = result.hestia_status ? `, Hestia status: ${result.hestia_status}` : '';
-          const suffix = result.message ? ` - ${result.message}` : '';
-          return `${new Date().toLocaleTimeString()} - ${result.server}: ${domain} - ${status}${hestia}${action}${suffix}`;
-        }),
-      ].slice(-120));
+        `${new Date().toLocaleTimeString()} - Backend job finished with status: ${job.status}`,
+      ].slice(-140));
       await loadServers();
 
-      const changed = resp.data?.changed || 0;
-      const errors = resp.data?.errors || 0;
+      const changed = job.changed_count || 0;
+      const errors = job.error_count || 0;
       await loadAccounts();
       setLiveMessages(prev => [
         ...prev,
-        `${new Date().toLocaleTimeString()} - Sync complete: ${changed} action(s), ${errors} error(s)`,
-      ].slice(-120));
+        `${new Date().toLocaleTimeString()} - ${runIsDry ? 'Dry run' : 'Sync'} complete: ${changed} action(s), ${errors} error(s)`,
+      ].slice(-140));
       if (errors > 0) {
-        toast.warning('WHM Sync Finished', `${changed} action(s), ${errors} error(s)`);
+        toast.warning(runIsDry ? 'Dry Run Finished' : 'WHM Sync Finished', `${changed} action(s), ${errors} error(s)`);
       } else if (!silent) {
-        toast.success('WHM Sync Complete', `${changed} Hestia mail action(s) completed`);
+        toast.success(runIsDry ? 'Dry Run Complete' : 'WHM Sync Complete', `${changed} Hestia mail action(s) ${runIsDry ? 'planned' : 'completed'}`);
       }
-      addLog('WHM Sync', `Completed WHM sync: ${changed} action(s), ${errors} error(s)`, errors ? 'error' : 'success');
+      addLog('WHM Sync', `Completed ${runIsDry ? 'dry-run ' : ''}WHM sync job #${job.id}: ${changed} action(s), ${errors} error(s)`, errors ? 'error' : 'success');
     } catch (e: any) {
-      window.clearInterval(waitingTimer);
       setLiveMessages(prev => [
         ...prev,
         `${new Date().toLocaleTimeString()} - Sync failed: ${e.message || 'Unknown error'}`,
-      ].slice(-120));
+      ].slice(-140));
       if (!silent) toast.error('WHM Sync Failed', e.message || 'Sync failed');
       addLog('WHM Sync', `Sync failed: ${e.message}`, 'error');
     }
@@ -346,10 +373,14 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 text-xs text-gray-300">
                 <input type="checkbox" checked={autoSync} onChange={e => setAutoSync(e.target.checked)} />
-                5 min sync
+                Browser 5 min sync
+              </label>
+              <label className="flex items-center gap-2 text-xs text-gray-300">
+                <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} disabled={syncing} />
+                Dry run
               </label>
               <button onClick={() => void runSync(false)} disabled={syncing || enabledServers.length === 0} className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2">
-                {syncing ? <LoadingSpinner size="sm" text="Syncing..." /> : <><RefreshCw size={14} />{selectedAccounts.size > 0 ? `Sync Selected (${selectedAccounts.size})` : 'Sync All'}</>}
+                {syncing ? <LoadingSpinner size="sm" text="Syncing..." /> : <><RefreshCw size={14} />{dryRun ? 'Dry Run' : selectedAccounts.size > 0 ? `Sync Selected (${selectedAccounts.size})` : 'Sync All'}</>}
               </button>
             </div>
           </div>
@@ -473,6 +504,23 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
           </h3>
           <p className="text-xs text-gray-500">{lastSync ? `Last run: ${lastSync.toLocaleTimeString()}` : 'No sync run yet'}</p>
         </div>
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-gray-900/40 border border-gray-700/40 rounded-lg p-3">
+            <p className="text-xs font-semibold text-gray-300 flex items-center gap-2">
+              <ShieldCheck size={13} className="text-emerald-400" />
+              Credential Security
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              WHM passwords are encrypted in the backend database. Change APP_ENCRYPTION_KEY in config.php before production use.
+            </p>
+          </div>
+          <div className="bg-gray-900/40 border border-gray-700/40 rounded-lg p-3">
+            <p className="text-xs font-semibold text-gray-300">cron-job.org 5-minute URL</p>
+            <p className="text-xs text-gray-500 mt-1 font-mono break-all">
+              https://your-domain.com/api/whm/cron?secret=your-cron-secret
+            </p>
+          </div>
+        </div>
         <div className="mb-4 bg-gray-950/60 border border-gray-700/40 rounded-lg overflow-hidden">
           <div className="px-3 py-2 border-b border-gray-700/40 flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-300 flex items-center gap-2">
@@ -480,7 +528,9 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
               Live Sync Activity
             </p>
             <p className="text-[11px] text-gray-500">
-              {syncing && syncStartedAt ? `Running since ${syncStartedAt.toLocaleTimeString()}` : 'Idle'}
+              {currentJob
+                ? `Job #${currentJob.id}: ${currentJob.status} (${currentJob.processed_accounts}/${currentJob.total_accounts || '?'})`
+                : syncing && syncStartedAt ? `Running since ${syncStartedAt.toLocaleTimeString()}` : 'Idle'}
             </p>
           </div>
           <div className="max-h-48 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed">
@@ -499,13 +549,14 @@ export const WhmServersPanel: React.FC<Props> = ({ addLog, toast, confirm }) => 
               <div key={`${result.server}-${result.domain}-${index}`} className={`p-3 rounded-lg border ${
                 result.status === 'success'
                   ? 'bg-green-900/10 border-green-700/30'
-                  : result.status === 'skipped'
+                  : result.status === 'skipped' || result.status === 'planned'
                     ? 'bg-amber-900/10 border-amber-700/30'
                     : 'bg-red-900/10 border-red-700/30'
               }`}>
                 <div className="flex items-center gap-2">
-                  {result.status === 'success' ? <Check size={14} className="text-green-400" /> : <AlertCircle size={14} className={result.status === 'skipped' ? 'text-amber-400' : 'text-red-400'} />}
+                  {result.status === 'success' ? <Check size={14} className="text-green-400" /> : <AlertCircle size={14} className={result.status === 'skipped' || result.status === 'planned' ? 'text-amber-400' : 'text-red-400'} />}
                   <p className="text-sm text-white">{result.domain || result.server}</p>
+                  {result.status === 'planned' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-900/30 text-blue-300">Dry run</span>}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   {result.server}
